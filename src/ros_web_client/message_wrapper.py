@@ -25,7 +25,7 @@ class Topic(object):
     """
     SUPPORTED_COMPRESSION_TYPES = ('png', 'none')
 
-    def __init__(self, net_id, name, message_type, compression=None, latch=False, throttle_rate=0,
+    def __init__(self, net_id, name, message_type, compression=None, latch=True, throttle_rate=0,
                  queue_size=100, queue_length=0):
         self.net_id = net_id
         self.name = name
