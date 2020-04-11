@@ -1,0 +1,6 @@
+{
+  "Topcis": [
+    {"topic": "dadatopic"
+    ,"type": "std_msgs/String"}
+  ]
+}
