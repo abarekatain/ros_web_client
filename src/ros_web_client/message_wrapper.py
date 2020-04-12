@@ -13,7 +13,6 @@ class Topic(object):
     """message wrapper for topics.
 
     Args:
-        net_id (:obj:`str`): network id for this connection.
         name (:obj:`str`): Topic name, e.g. ``/cmd_vel``.
         message_type (:obj:`str`): Message type, e.g. ``std_msgs/String``.
         compression (:obj:`str`): Type of compression to use, e.g. `png`. Defaults to `None`.
@@ -25,16 +24,15 @@ class Topic(object):
     """
     SUPPORTED_COMPRESSION_TYPES = ('png', 'none')
 
-    def __init__(self, net_id, name, message_type, compression=None, latch=True, throttle_rate=0,
-                 queue_size=100, queue_length=0):
-        self.net_id = net_id
+    def __init__(self, name, message_type, compression=None, latch=True, throttle_rate=0,
+                 queue_size=100, queue_length=0, parameters= {}):       
         self.name = name
         self.message_type = message_type
-        self.compression = compression
-        self.latch = latch
-        self.throttle_rate = throttle_rate
-        self.queue_size = queue_size
-        self.queue_length = queue_length
+        self.compression = parameters.get("compression", compression) 
+        self.latch = parameters.get("latch", latch) 
+        self.throttle_rate = parameters.get("throttle_rate", throttle_rate) 
+        self.queue_size = parameters.get("queue_size", queue_size)  
+        self.queue_length = parameters.get("queue_length", queue_length)
 
         self.subscribe_id = None
         self.advertise_id = None
@@ -70,8 +68,8 @@ class Topic(object):
 
         """
         if not self.subscribe_id:
-            self.subscribe_id = 'subscribe:%s:%d' % (
-                self.name, self.net_id)
+            self.subscribe_id = 'subscribe:%s' % (
+                self.name)
 
         command = {
             'op': 'subscribe',
@@ -102,8 +100,8 @@ class Topic(object):
         """Return a json advertise command for the topic"""
         
         if not self.is_advertised:
-            self.advertise_id = 'advertise:%s:%d' % (
-                self.name, self.net_id)
+            self.advertise_id = 'advertise:%s' % (
+                self.name)
 
         command = {
             'op': 'advertise',
@@ -128,7 +126,86 @@ class Topic(object):
             command['id']= self.advertise_id
             self.advertise_id = None
 
-        return json.dumps(command)    
+        return json.dumps(command)
+
+
+
+
+
+
+
+class Service(object):
+    """message wrapper for ROS services.
+
+
+    Args:
+        name (:obj:`str`): Service name, e.g. ``/add_two_ints``.
+    """
+    SUPPORTED_COMPRESSION_TYPES = ('png', 'none')
+
+    def __init__(self, name, compression=None):
+        self.name = name
+        self.compression = compression
+        
+        if self.compression is None:
+            self.compression = 'none'
+
+        if self.compression not in self.SUPPORTED_COMPRESSION_TYPES:
+            raise ValueError(
+                'Unsupported compression type. Must be one of: ' + str(self.SUPPORTED_COMPRESSION_TYPES))
+
+
+
+    def call_command(self, request):
+
+        service_call_id = 'call_service:%s' % (
+            self.name)
+
+        command = {
+            'op': 'call_service',
+            'id': service_call_id,
+            'service': self.name,
+            'args': request,
+        }
+
+        return json.dumps(command)
+
+
+
+
+
+
+class Param(object):
+    """A ROS parameter.
+
+    Args:
+        ros (:class:`.Ros`): Instance of the ROS connection.
+        name (:obj:`str`): Parameter name, e.g. ``max_vel_x``.
+    """
+
+    def __init__(self, name):
+        self.name = name
+
+    def get_command(self):
+        client = Service('/rosapi/get_param')
+        request = {'name': self.name}
+        return client.call_command(request)
+
+
+    def set_command(self, value):
+
+        client = Service('/rosapi/set_param')
+        request = {'name': self.name, 'value': json.dumps(value)}
+
+        return client.call_command(request)
+
+    def delete_command(self):
+        
+        client = Service('/rosapi/delete_param')
+        request = {'name': self.name}
+
+        return client.call_command(request)
+
 
         
 
