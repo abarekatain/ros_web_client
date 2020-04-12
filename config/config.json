@@ -1,6 +1,8 @@
 {
-  "Topcis": [
+  "topics": [
     {"topic": "dadatopic"
-    ,"type": "std_msgs/String"}
+    ,"type": "std_msgs/String"},
+    {"topic": "dadatopic2"
+      ,"type": "std_msgs/String"}
   ]
 }

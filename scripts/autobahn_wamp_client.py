@@ -129,7 +129,7 @@ class ClientSession(ApplicationSession):
 
         #Fake: Call command procedure
         '''
-        topic= Topic(1,"dadatopic","std_msgs/String")
+        topic= Topic("dadatopic","std_msgs/String")
         self.ros_protocol.incoming(topic.advertise_command())
         try:
             yield self.call(command_domain,topic.subscribe_command())
