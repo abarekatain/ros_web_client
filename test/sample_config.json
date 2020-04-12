@@ -1,0 +1,11 @@
+{
+  "topics": [
+    {"name": "dadatopic"
+    ,"message_type": "std_msgs/String"
+    ,"latch": true
+    ,"compression": "png"
+    ,"throttle_rate": 88
+    ,"queue_size": 88
+    ,"queue_length": 88}
+  ]
+}
