@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import json
+import uuid
 
 # Python 2/3 compatibility import list
 try:
@@ -8,8 +9,10 @@ try:
 except ImportError:
     from UserDict import UserDict
 
+class Wrapper(object):
+    SUPPORTED_COMPRESSION_TYPES = ('png', 'none')
 
-class Topic(object):
+class Topic(Wrapper):
     """message wrapper for topics.
 
     Args:
@@ -22,7 +25,7 @@ class Topic(object):
         queue_length (:obj:`int`): Queue length at bridge side used when subscribing.
         reconnect_on_close (:obj:`bool`): Reconnect the topic (both for publisher and subscribers) if a reconnection is detected.
     """
-    SUPPORTED_COMPRESSION_TYPES = ('png', 'none')
+    
 
     def __init__(self, name, message_type, compression=None, latch=True, throttle_rate=0,
                  queue_size=100, queue_length=0, parameters= {}):       
@@ -34,8 +37,8 @@ class Topic(object):
         self.queue_size = parameters.get("queue_size", queue_size)  
         self.queue_length = parameters.get("queue_length", queue_length)
 
-        self.subscribe_id = None
-        self.advertise_id = None
+        self.op_id = uuid.uuid4().hex
+
 
         if self.compression is None:
             self.compression = 'none'
@@ -45,35 +48,14 @@ class Topic(object):
                 'Unsupported compression type. Must be one of: ' + str(self.SUPPORTED_COMPRESSION_TYPES))
 
 
-    @property
-    def is_advertised(self):
-        """Indicate if the topic is currently advertised or not.
-
-        Returns:
-            bool: True if advertised as publisher of this topic, False otherwise.
-        """
-        return self.advertise_id is not None
-
-    @property
-    def is_subscribed(self):
-        """Indicate if the topic is currently subscribed or not.
-
-        Returns:
-            bool: True if subscribed to this topic, False otherwise.
-        """
-        return self.subscribe_id is not None
-
     def subscribe_command(self):
         """Return a json subscription command for the topic
 
         """
-        if not self.subscribe_id:
-            self.subscribe_id = 'subscribe:%s' % (
-                self.name)
 
         command = {
             'op': 'subscribe',
-            'id': self.subscribe_id,
+            'id': self.op_id,
             'type': self.message_type,
             'topic': self.name,
             'compression': self.compression,
@@ -87,25 +69,18 @@ class Topic(object):
         """Return a json unsubscription command for the topic"""
         command = {
             'op': 'unsubscribe',
+            'id': self.op_id,
             'topic': self.name
         }
-
-        if self.subscribe_id:
-            command['id'] = self.subscribe_id
-            self.subscribe_id = None
 
         return json.dumps(command)    
 
     def advertise_command(self):
         """Return a json advertise command for the topic"""
-        
-        if not self.is_advertised:
-            self.advertise_id = 'advertise:%s' % (
-                self.name)
 
         command = {
             'op': 'advertise',
-            'id': self.advertise_id,
+            'id': self.op_id,
             'type': self.message_type,
             'topic': self.name,
             'latch': self.latch,
@@ -119,12 +94,9 @@ class Topic(object):
         
         command = {
             'op': 'unadvertise',
+            'id': self.op_id,
             'topic': self.name,
         }
-
-        if self.is_advertised:
-            command['id']= self.advertise_id
-            self.advertise_id = None
 
         return json.dumps(command)
 
@@ -134,21 +106,23 @@ class Topic(object):
 
 
 
-class Service(object):
+class Service(Wrapper):
     """message wrapper for ROS services.
 
 
     Args:
         name (:obj:`str`): Service name, e.g. ``/add_two_ints``.
     """
-    SUPPORTED_COMPRESSION_TYPES = ('png', 'none')
 
-    def __init__(self, name, compression=None):
+    def __init__(self, name, op_id=None, compression=None):
         self.name = name
         self.compression = compression
+        self.op_id = op_id
         
         if self.compression is None:
             self.compression = 'none'
+        if self.op_id is None:
+            self.op_id = uuid.uuid4().hex
 
         if self.compression not in self.SUPPORTED_COMPRESSION_TYPES:
             raise ValueError(
@@ -158,12 +132,10 @@ class Service(object):
 
     def call_command(self, request):
 
-        service_call_id = 'call_service:%s' % (
-            self.name)
 
         command = {
             'op': 'call_service',
-            'id': service_call_id,
+            'id': self.op_id,
             'service': self.name,
             'args': request,
         }
@@ -185,23 +157,24 @@ class Param(object):
 
     def __init__(self, name):
         self.name = name
+        self.op_id = uuid.uuid4().hex
 
     def get_command(self):
-        client = Service('/rosapi/get_param')
+        client = Service('/rosapi/get_param',op_id=self.op_id)
         request = {'name': self.name}
         return client.call_command(request)
 
 
     def set_command(self, value):
 
-        client = Service('/rosapi/set_param')
+        client = Service('/rosapi/set_param',op_id=self.op_id)
         request = {'name': self.name, 'value': json.dumps(value)}
 
         return client.call_command(request)
 
     def delete_command(self):
         
-        client = Service('/rosapi/delete_param')
+        client = Service('/rosapi/delete_param',op_id=self.op_id)
         request = {'name': self.name}
 
         return client.call_command(request)
