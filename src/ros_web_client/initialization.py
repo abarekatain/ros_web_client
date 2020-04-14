@@ -4,6 +4,8 @@ from ros_web_client.message_wrapper import Topic, Param
 
 from rosbridge_library.rosbridge_protocol import RosbridgeProtocol
 
+from twisted.internet import defer
+
 
 class ConfigParser(object):
     """ Parser for Initialization config file in JSON
@@ -35,19 +37,32 @@ class ConfigParser(object):
         self.parse_params()
         return self.list_commands
 
-class CommandExecuter(object):
+class ServiceHandler(object):
 
-    def __init__(self):
-        self.protocol = RosbridgeProtocol(0)
-        self.protocol.outgoing = self.outgoing
-        self.list_responses = {}
-
-    def outgoing(self, message):
-        pass    
+    def __init__(self,protocol):
+        self.protocol = protocol
+        self.service_deffereds={}
+   
     
-    def execute(self, list_commands):
-        for command in list_commands:
-            self.protocol.incoming(command)
+    def execute(self, command):
+        dict_command=json.loads(command)
+        d=defer.Deferred()
+        d.addCallback(self.return_result)
+        self.service_deffereds[dict_command["id"]]=d
+        self.protocol.incoming(command)
+        return d
+
+    def callback(self,message):
+        dict_message=json.loads(message)
+        d=self.service_deffereds.get(dict_message["id"])
+        d.callback(message)
+        del self.service_deffereds[dict_message["id"]]
+
+    def return_result(self,message):
+        return message
+        
+
+
 
 
 
