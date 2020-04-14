@@ -4,8 +4,10 @@ import unittest
 import json
 import rospy
 
-from ros_web_client.initialization import ConfigParser
-from ros_web_client.message_wrapper import Param
+from ros_web_client.initialization import ConfigParser,ServiceHandler
+from ros_web_client.message_wrapper import Param,Topic
+
+from twisted.internet.defer import inlineCallbacks
 
 
 class TestInitialization(unittest.TestCase):
@@ -32,6 +34,36 @@ class TestInitialization(unittest.TestCase):
 
         test_protocol.incoming(param.get_command())
 
+    def test_setparam_service(self):
+        from rosbridge_library.rosbridge_protocol import RosbridgeProtocol
+        param = Param("/test_param")
+        test_protocol=RosbridgeProtocol(88)
+
+        def outgoing(message):
+            print("ROSBRidge Outgoing: {}".format(message))
+        
+        test_protocol.outgoing=outgoing
+
+        test_protocol.incoming(param.set_command(885))
+    
+    def test_rosbridge_false_subscription(self):
+        from std_msgs.msg import String
+        pub = rospy.Publisher("/test", String, queue_size=10,latch=True)
+        pub.publish("dada")
+
+        from rosbridge_library.rosbridge_protocol import RosbridgeProtocol
+        test_protocol=RosbridgeProtocol(88)
+
+        def outgoing(message):
+            print("ROSBRidge Outgoing: {}".format(message))
+        
+        test_protocol.outgoing=outgoing
+
+        topic=Topic("/test","sensor_msgs/Image")
+        test_protocol.incoming(topic.advertise_command())
+
+
+
     def test_list_json_conversion(self):
         test_list=["command1", "command2", "command3"]        
         json_str = json.dumps(test_list)
@@ -57,6 +89,25 @@ class TestInitialization(unittest.TestCase):
         commands = parser.parse()
 
         test_protocol.incoming(commands[1])
+    @inlineCallbacks
+    def test_service_handler(self):
+        from rosbridge_library.rosbridge_protocol import RosbridgeProtocol
+        test_protocol=RosbridgeProtocol(88)
+
+        service_handler=ServiceHandler(test_protocol)
+
+        def outgoing(message):
+            service_handler.callback(message)
+            print("ROSBRidge Outgoing: {}".format(message))
+        
+        test_protocol.outgoing=outgoing
+        
+
+        if not rospy.has_param("/test_param"):
+            rospy.set_param('/test_param', 88)
+        param = Param("/test_param") 
+        result = yield service_handler.execute(param.get_command())  
+        print("result is {}".format(result))     
 
 
 
@@ -71,7 +122,7 @@ if __name__ == '__main__':
 
 
     test_case = TestInitialization()
-    test_case.test_config_parser()
+    test_case.test_service_handler()
     
     
     while not rospy.is_shutdown():
