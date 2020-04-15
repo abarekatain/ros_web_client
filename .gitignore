@@ -1,0 +1,8 @@
+*.pyc
+*.iml
+*.swp
+.project
+.pydevproject
+.DS_Store
+.idea
+.vscode/settings.json
