@@ -1,0 +1,21 @@
+<launch>
+
+    <!-- Arguments -->
+    <arg name="url" default="ws://localhost:8080/ws"/>
+    <arg name="realm" default="realm1"/>
+    <arg name="robot_id" default="testbot"/>
+    <arg name="init_config" default="$(find ros_web_client)/config/init_config.json"/>
+
+    <node name="serverside" pkg="ros_web_client" type="serverside.py" output="screen"/>
+ 
+    <param name="webclient/server/init_config" command="cat $(arg init_config)" />
+    <param name="webclient/robot_id" value="$(arg robot_id)" />
+    <param name="webclient/url" value="$(arg url)" />
+    <param name="webclient/realm" value="$(arg realm)" />
+    <param name="webclient/client/data_domain" value="client.data.$(arg robot_id)" />
+    <param name="webclient/client/service_domain" value="client.service.$(arg robot_id)" />
+    <param name="webclient/server/data_domain" value="server.data.$(arg robot_id)" />
+    <param name="webclient/server/service_domain" value="server.service.$(arg robot_id)" />
+
+
+</launch>
