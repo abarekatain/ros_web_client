@@ -2,7 +2,6 @@ import json
 
 from ros_web_client.message_wrapper import Topic, Param
 
-from rosbridge_library.rosbridge_protocol import RosbridgeProtocol
 
 from twisted.internet import defer
 
@@ -38,6 +37,13 @@ class ConfigParser(object):
         return self.list_commands
 
 class ServiceHandler(object):
+    """ Handle Service Requests from RPC
+        catch the request and return a deffered,
+        the deffered will callback when request is completed
+
+        Args:
+        protocol (:obj: ROSBridgeProtocol) instance of Rosbridge Protocol
+    """
 
     def __init__(self,protocol):
         self.protocol = protocol
@@ -47,7 +53,7 @@ class ServiceHandler(object):
     def execute(self, command):
         dict_command=json.loads(command)
         d=defer.Deferred()
-        d.addCallback(self.return_result)
+        d.addCallback(self._return_result)
         self.service_deffereds[dict_command["id"]]=d
         self.protocol.incoming(command)
         return d
@@ -58,7 +64,7 @@ class ServiceHandler(object):
         d.callback(message)
         del self.service_deffereds[dict_message["id"]]
 
-    def return_result(self,message):
+    def _return_result(self,message):
         return message
         
 
