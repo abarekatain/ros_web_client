@@ -6,6 +6,16 @@
     <arg name="robot_id" default="testbot"/>
     <arg name="init_config" default="$(find ros_web_client)/config/init_config.json"/>
 
+    <arg name="topics_glob" default="[*]" />
+    <arg name="services_glob" default="[*]" />
+    <arg name="params_glob" default="[*]" />
+
+    <node name="rosapi" pkg="rosapi" type="rosapi_node">
+        <param name="topics_glob" value="$(arg topics_glob)"/>
+        <param name="services_glob" value="$(arg services_glob)"/>
+        <param name="params_glob" value="$(arg params_glob)"/>
+    </node>
+
     <node name="serverside" pkg="ros_web_client" type="serverside.py" output="screen"/>
  
     <param name="webclient/server/init_config" command="cat $(arg init_config)" />
