@@ -20,7 +20,7 @@ class ClientSession(ApplicationSession):
         self.init()
 
     def init(self):
-        pass   
+        self.ros_protocol = RosbridgeProtocol(0)   
 
     @inlineCallbacks
     def onJoin(self, details):
@@ -33,25 +33,21 @@ class ClientSession(ApplicationSession):
 
         #TEMP----------------------
 
-        config_parser=ConfigParser(server_params["init_config"])
+        config_parser=ConfigParser(server_params["init_config"],self.ros_protocol)
         list_commands=config_parser.parse()
 
         for command in list_commands:
-            result = yield self.call(client_params["service_domain"],command)
-            if result is not None:
-                self.process_service_result(result)
+            result = yield self.call(client_params["service_domain"],command.message)
+            command.callback(command,result)
 
-    def process_service_result(self,result):
-        #TODO currently only the parameter processing is required, Add more processes later
-        dict_result = json.loads(result)
 
     def on_data(self,message):
         pass
 
 
     def on_command(self, command):
-        pass
-
+        teststr='{"op":"service_response","service":"\/rosapi\/get_param","values":{"value":"88"},"result":true}'
+        return teststr
 
     def outgoing(self, message):
         pass
