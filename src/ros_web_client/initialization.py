@@ -11,30 +11,66 @@ class ConfigParser(object):
 
     Args:
         config (:obj: 'str') content of config file in JSON format
+        protocol: (:obj: 'RosBridgeProtocol') instance of RosBridgeProtocol        
     """
 
-    def __init__(self, config):
+    def __init__(self, config,protocol):
         self.config = json.loads(config)
-        self.list_topics = []
-        self.list_params = []
+        self.protocol = protocol
         self.list_commands = []
     
     def parse_topics(self):
+        """ parse topics into Topic wrapper class
+            instantiate Command class and add callback method to handle response
+        """
+
+        def callback(command,result):
+            if result is None:
+                command.protocol.incoming(command.wrapper.advertise_command())
+
         for item in self.config.get("topics"):
-            topic=Topic(item["name"],item["message_type"],parameters=item)
-            self.list_topics.append(topic)
-            self.list_commands.append(topic.subscribe_command())
+            topic = Topic(item["name"],item["message_type"],parameters=item)
+            command = Command(topic.subscribe_command(),callback,wrapper=topic,protocol=self.protocol)
+            self.list_commands.append(command)
     
     def parse_params(self):
+        """ parse params into param wrapper class
+            instantiate Command class and add callback method to handle response
+        """        
+
+        def callback(command,result):
+            if result is not None:
+                result=json.loads(result)
+                param_value = result["values"]["value"]
+                command.protocol.incoming(command.wrapper.set_command(param_value))
+        
         for item in self.config.get("parameters"):
-            param= Param(item)
-            self.list_params.append(param)
-            self.list_commands.append(param.get_command())
+            param = Param(item)
+            command = Command(param.get_command(),callback,wrapper=param,protocol=self.protocol)
+            self.list_commands.append(command)
     
     def parse(self):
         self.parse_topics()
         self.parse_params()
         return self.list_commands
+
+
+class Command(object):
+    """ Command object to wrap all necessary data for RPC Call
+
+    Args:
+        message (:obj:'str') the command message to send
+        callback (method) callback function to handle response
+        wrapper(:obj:'Wrapper') message wrapper object, Topic, Service, or Param
+    """
+
+    def __init__(self,message,callback,wrapper=None,protocol=None):
+        self.message = message
+        self.callback = callback
+        self.wrapper = wrapper
+        self.protocol = protocol
+
+
 
 class ServiceHandler(object):
     """ Handle Service Requests from RPC

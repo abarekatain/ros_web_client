@@ -122,7 +122,7 @@ if __name__ == '__main__':
 
 
     test_case = TestInitialization()
-    test_case.test_service_handler()
+    test_case.test_getparam_service()
     
     
     while not rospy.is_shutdown():
