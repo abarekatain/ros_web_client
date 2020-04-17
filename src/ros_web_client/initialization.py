@@ -25,7 +25,7 @@ class ConfigHandler(object):
         def callback(command,result):
             if result is not None:
                 result=json.loads(result)
-                param_value = result["values"]["value"] + "changed by server"
+                param_value = result["values"]["value"]
                 command.protocol.incoming(command.wrapper.set_command(param_value))
         
         for param in self.parser.params_list:
