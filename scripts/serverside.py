@@ -7,7 +7,7 @@ from twisted.internet.defer import inlineCallbacks
 from autobahn.twisted.wamp import ApplicationSession, ApplicationRunner
 
 from rosbridge_library.rosbridge_protocol import RosbridgeProtocol
-from ros_web_client.initialization import ConfigParser
+from ros_web_client.initialization import ConfigHandler
 
 
 class ClientSession(ApplicationSession):
@@ -33,10 +33,10 @@ class ClientSession(ApplicationSession):
 
         #TEMP----------------------
 
-        config_parser=ConfigParser(server_params["init_config"],self.ros_protocol)
-        list_commands=config_parser.parse()
+        config_handler = ConfigHandler(server_params["init_config"],self.ros_protocol)
+        commands_list = config_handler.return_commands()
 
-        for command in list_commands:
+        for command in commands_list:
             result = yield self.call(client_params["service_domain"],command.message)
             command.callback(command,result)
 
@@ -47,7 +47,7 @@ class ClientSession(ApplicationSession):
 
     def on_command(self, command):
         teststr='{"op":"service_response","service":"\/rosapi\/get_param","values":{"value":"88"},"result":true}'
-        return teststr
+        return None
 
     def outgoing(self, message):
         pass

@@ -5,6 +5,39 @@ from ros_web_client.message_wrapper import Topic, Param
 
 from twisted.internet import defer
 
+class ConfigHandler(object):
+
+    def __init__(self, config,protocol):
+        self.protocol = protocol
+        self.parser = ConfigParser(config)
+        self.commands_list = []
+
+    def handle_topics(self):
+
+        def callback(command,result):
+            if result is None:
+                command.protocol.incoming(command.wrapper.advertise_command())
+
+        for topic in self.parser.topics_list:
+            command = Command(topic.subscribe_command(),callback,wrapper=topic,protocol=self.protocol)
+            self.commands_list.append(command)
+    
+    def handle_params(self):
+
+        def callback(command,result):
+            if result is not None:
+                result=json.loads(result)
+                param_value = result["values"]["value"]
+                command.protocol.incoming(command.wrapper.set_command(param_value))
+        
+        for param in self.parser.params_list:
+            command = Command(param.get_command(),callback,wrapper=param,protocol=self.protocol)
+            self.commands_list.append(command)
+    
+    def return_commands(self):
+        self.handle_topics()
+        self.handle_params()
+        return self.commands_list
 
 class ConfigParser(object):
     """ Parser for Initialization config file in JSON
@@ -14,45 +47,29 @@ class ConfigParser(object):
         protocol: (:obj: 'RosBridgeProtocol') instance of RosBridgeProtocol        
     """
 
-    def __init__(self, config,protocol):
+    def __init__(self, config):
         self.config = json.loads(config)
-        self.protocol = protocol
-        self.list_commands = []
+        self.topics_list = []
+        self.params_list = []
+        self.parse()
     
     def parse_topics(self):
         """ parse topics into Topic wrapper class
-            instantiate Command class and add callback method to handle response
         """
-
-        def callback(command,result):
-            if result is None:
-                command.protocol.incoming(command.wrapper.advertise_command())
-
         for item in self.config.get("topics"):
             topic = Topic(item["name"],item["message_type"],parameters=item)
-            command = Command(topic.subscribe_command(),callback,wrapper=topic,protocol=self.protocol)
-            self.list_commands.append(command)
+            self.topics_list.append(topic)
     
     def parse_params(self):
         """ parse params into param wrapper class
-            instantiate Command class and add callback method to handle response
-        """        
-
-        def callback(command,result):
-            if result is not None:
-                result=json.loads(result)
-                param_value = result["values"]["value"]
-                command.protocol.incoming(command.wrapper.set_command(param_value))
-        
+        """              
         for item in self.config.get("parameters"):
             param = Param(item)
-            command = Command(param.get_command(),callback,wrapper=param,protocol=self.protocol)
-            self.list_commands.append(command)
+            self.params_list.append(param)
     
     def parse(self):
         self.parse_topics()
         self.parse_params()
-        return self.list_commands
 
 
 class Command(object):
