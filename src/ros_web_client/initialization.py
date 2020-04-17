@@ -3,8 +3,6 @@ import json
 from ros_web_client.message_wrapper import Topic, Param
 
 
-from twisted.internet import defer
-
 class ConfigHandler(object):
 
     def __init__(self, config,protocol):
@@ -27,7 +25,7 @@ class ConfigHandler(object):
         def callback(command,result):
             if result is not None:
                 result=json.loads(result)
-                param_value = result["values"]["value"]
+                param_value = result["values"]["value"] + "changed by server"
                 command.protocol.incoming(command.wrapper.set_command(param_value))
         
         for param in self.parser.params_list:
