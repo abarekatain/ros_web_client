@@ -26,6 +26,8 @@ class ClientSession(ApplicationSession):
     def onJoin(self, details):
         rospy.loginfo("session attached")
 
+        yield self.subscribe(self.on_data, server_params["data_domain"])
+
         #Initialize Config
         config_handler = ConfigHandler(server_params["init_config"],self.ros_protocol)
         commands_list = config_handler.return_commands()
@@ -34,7 +36,7 @@ class ClientSession(ApplicationSession):
             command.callback(command,result)
 
     def on_data(self,message):
-        pass
+        self.ros_protocol.incoming(message)
 
 
     def outgoing(self, message):
