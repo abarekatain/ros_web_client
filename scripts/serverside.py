@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+
 import rospy
 import json
 
@@ -36,6 +37,8 @@ class ClientSession(ApplicationSession):
             command.callback(command,result)
 
     def on_data(self,message):
+        #replace JSON Null values in float32 types with infinity datatype (changed according to the error for LaserScan values)
+        message = message.replace("null", "Infinity")
         self.ros_protocol.incoming(message)
 
 
