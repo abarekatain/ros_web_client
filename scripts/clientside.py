@@ -62,8 +62,7 @@ class OutgoingValve:
         self._valve.wait()
         if self._finished:
             return
-        #reactor.callFromThread(self._session.outgoing, message)
-        self._session.publish_msg(message)
+        reactor.callFromThread(self._session.publish_msg, message)
 
     def pauseProducing(self):
         if not self._finished:
@@ -93,6 +92,8 @@ class ClientSession(ApplicationSession):
         self.ros_protocol.outgoing = self.outgoing   
         self.service_handler = ServiceHandler(self.ros_protocol)
 
+        self.topic_occupied = {}
+
     def onConnect(self):          
 
         self._transport.registerProducer(self.producer, True)
@@ -116,15 +117,19 @@ class ClientSession(ApplicationSession):
             returnValue(None)
 
     def outgoing(self, message):
-        print("ROSBridge Outgoing {}".format(message))
         message_dict = json.loads(message)
         if message_dict.get("op")=="service_response":         
             self.service_handler.callback(message)
-        else:
+        elif message_dict.get("op")=="publish" and self.topic_occupied.get(message_dict["topic"],False)==False:
             self.producer.relay(message)
 
+
     def publish_msg(self,message):
+        message_dict = json.loads(message)
+        self.topic_occupied[message_dict["topic"]]=True
         self.publish(server_params["data_domain"], message)
+        self.topic_occupied[message_dict["topic"]]=False
+
 
 
 if __name__ == "__main__":
