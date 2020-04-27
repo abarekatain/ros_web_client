@@ -12,3 +12,14 @@
   ],
   "parameters": ["/robot_description"]
 }
+
+
+{
+  "topics": [
+    {"name": "/camera/rgb/image_raw"
+      ,"message_type": "sensor_msgs/Image"
+      ,"compression":"png"}
+    
+  ],
+  "parameters": ["/robot_description"]
+}
