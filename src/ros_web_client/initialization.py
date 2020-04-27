@@ -1,4 +1,5 @@
 import json
+import rosparam
 
 from ros_web_client.message_wrapper import Topic, Param
 
@@ -26,7 +27,7 @@ class ConfigHandler(object):
             if result is not None:
                 result=json.loads(result)
                 param_value = result["values"]["value"]
-                command.protocol.incoming(command.wrapper.set_command(param_value))
+                rosparam.set_param(command.wrapper.name,param_value)
         
         for param in self.parser.params_list:
             command = Command(param.get_command(),callback,wrapper=param,protocol=self.protocol)
