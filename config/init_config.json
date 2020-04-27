@@ -1,4 +1,19 @@
 {
-  "topics": [],
-  "parameters": ["/test_param"]
+  "topics": [
+    {"name": "/clock"
+    ,"message_type": "rosgraph_msgs/Clock"},
+    {"name": "/tf"
+      ,"message_type": "tf2_msgs/TFMessage"},
+    {"name": "/tf_static"
+      ,"message_type": "tf2_msgs/TFMessage"},
+    {"name": "/scan"
+      ,"message_type": "sensor_msgs/LaserScan"}
+    
+  ],
+  "parameters": [
+    "/gazebo/",
+    "/robot_state_publisher/",
+    "/use_sim_time"
+  ]
+
 }

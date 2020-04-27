@@ -13,7 +13,6 @@
   "parameters": ["/robot_description"]
 }
 
-
 {
   "topics": [
     {"name": "/camera/rgb/image_raw"
