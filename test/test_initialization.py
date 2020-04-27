@@ -2,7 +2,11 @@
 
 import unittest
 import json
+import ast
+import rosparam
 import rospy
+
+
 
 from ros_web_client.initialization import ConfigParser,ServiceHandler
 from ros_web_client.message_wrapper import Param,Topic
@@ -11,6 +15,13 @@ from twisted.internet.defer import inlineCallbacks
 
 
 class TestInitialization(unittest.TestCase):
+
+    def my_eval(self,s):
+        obj = ast.literal_eval(s)
+        print(type(obj))
+
+    def test_rosparam(self,s):
+        rosparam.set_param("/dadayeh_param",s)
 
     def test_config_parser(self):
         with open('sample_config.json', 'r') as outfile:
@@ -122,7 +133,7 @@ if __name__ == '__main__':
 
 
     test_case = TestInitialization()
-    test_case.test_getparam_service()
+    test_case.test_rosparam("1")
     
     
     while not rospy.is_shutdown():
