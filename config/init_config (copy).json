@@ -10,8 +10,34 @@
       ,"message_type": "sensor_msgs/LaserScan"}
     
   ],
-  "parameters": ["/robot_description"]
+  "parameters": [
+    "/gazebo/",
+    "/robot_state_publisher/",
+    "/use_sim_time"
+  ]
+
 }
+
+{
+  "topics": [
+    {"name": "/camera/rgb/image_raw/compressed"
+      ,"message_type": "sensor_msgs/CompressedImage"
+      }
+    
+  ],
+  "parameters": []
+}
+
+{"name": "/dadayeh/compressed"
+  ,"message_type": "sensor_msgs/CompressedImage"
+  }
+,
+    {"name": "/dadayeh/compressed/parameter_descriptions"
+      ,"message_type": "dynamic_reconfigure/ConfigDescription"
+      },
+    {"name": "/dadayeh/compressed/parameter_updates"
+      ,"message_type": "dynamic_reconfigure/Config"
+      }
 
 {
   "topics": [
