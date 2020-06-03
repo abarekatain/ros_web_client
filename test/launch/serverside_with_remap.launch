@@ -18,6 +18,13 @@
     </node>
 
     <node name="serverside" pkg="ros_web_client" type="serverside.py" output="screen">
+        <remap from="/clock" to="/dd/clock"/>
+        <remap from="/scan" to="/dd/scan"/>
+        <remap from="/tf" to="/dd/tf"/>
+        <remap from="/tf_static" to="/dd/tf_static"/>
+        <remap from="/camera/rgb/image_raw/compressed" to="/dd/camera/rgb/image_raw/compressed"/>
+        <remap from="/camera/rgb/camera_info" to="/dd/camera/rgb/camera_info"/>
+        <remap from="/odom" to="/dd/odom"/>
     </node>
  
     <param name="webclient/server/init_config" command="cat $(arg init_config)" />

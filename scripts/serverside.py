@@ -9,6 +9,7 @@ from autobahn.twisted.wamp import ApplicationSession, ApplicationRunner
 
 from rosbridge_library.rosbridge_protocol import RosbridgeProtocol
 from ros_web_client.initialization import ConfigHandler
+import txaio
 
 
 class ClientSession(ApplicationSession):
@@ -48,6 +49,7 @@ class ClientSession(ApplicationSession):
 
 if __name__ == "__main__":
     rospy.init_node("serverside", anonymous=False) 
+    #txaio.start_logging(level='debug')
 
     #Fetch parameters
     server_params = rospy.get_param("webclient/server/")
