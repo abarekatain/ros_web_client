@@ -10,7 +10,7 @@ except ImportError:
     from UserDict import UserDict
 
 class Wrapper(object):
-    SUPPORTED_COMPRESSION_TYPES = ('png', 'none')
+    SUPPORTED_COMPRESSION_TYPES = ('png', 'none', 'msgpack')
 
 class Topic(Wrapper):
     """message wrapper for topics.
@@ -58,7 +58,7 @@ class Topic(Wrapper):
             'id': self.op_id,
             'type': self.message_type,
             'topic': self.name,
-            'compression': self.compression,
+            '_compression': self.compression,
             'throttle_rate': self.throttle_rate,
             'queue_length': self.queue_length
         }

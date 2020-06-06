@@ -1,19 +1,13 @@
 {
   "topics": [
-    {"name": "/clock"
-    ,"message_type": "rosgraph_msgs/Clock"},
+
     {"name": "/tf"
-      ,"message_type": "tf2_msgs/TFMessage"},
-    {"name": "/tf_static"
-      ,"message_type": "tf2_msgs/TFMessage"},
+      ,"message_type": "tf2_msgs/TFMessage"
+      ,"compression": "png"},
     {"name": "/scan"
-      ,"message_type": "sensor_msgs/LaserScan"},
-    {"name": "/camera/rgb/image_raw/compressed"
-      ,"message_type": "sensor_msgs/CompressedImage"},
-    {"name": "/camera/rgb/camera_info"
-      ,"message_type": "sensor_msgs/CameraInfo"},
-    {"name": "/odom"
-      ,"message_type": "nav_msgs/Odometry"}  
+      ,"message_type": "sensor_msgs/LaserScan"
+      ,"compression": "png"}
+
     
   ],
   "parameters": [

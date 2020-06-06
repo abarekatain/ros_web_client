@@ -4,7 +4,7 @@ import json
 from twisted.internet import reactor
 from twisted.internet.defer import inlineCallbacks, returnValue
 
-from rosbridge_library.rosbridge_protocol import RosbridgeProtocol
+from ros_web_client.rosbridge_protocol_wrapper import ros_protocol as RosbridgeProtocol
 from ros_web_client.services import ServiceHandler
 from ros_web_client.initialization import ConfigHandler
 
@@ -31,7 +31,7 @@ class ClientProtocol(Protocol):
             result = yield self.service_handler.execute(command)
             returnValue(result)
         else:
-            self.ros_protocol.incoming(command)
+            self.ros_protocol.incoming(command_dict)
             returnValue(None)
 
     # the rosbridge outgoing
@@ -68,8 +68,6 @@ class ServerProtocol(Protocol):
             command.callback(command,result)
 
     def incoming_data(self,message):
-        #replace JSON Null values in float32 types with infinity datatype (changed according to the error for LaserScan values)
-        message = message.replace("null", "Infinity")
         self.ros_protocol.incoming(message)
 
     def outgoing(self, message):
