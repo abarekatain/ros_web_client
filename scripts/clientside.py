@@ -1,22 +1,17 @@
 #!/usr/bin/env python3
 
-import sys
-import threading
-import traceback
-from functools import wraps
-
 import rospy
 import json
 
-from twisted.internet import interfaces, reactor
-from zope.interface import implementer
+from twisted.internet import reactor
 from twisted.internet.defer import inlineCallbacks, returnValue
 from autobahn.twisted.wamp import ApplicationSession, ApplicationRunner
 import txaio
 
-from rosbridge_library.rosbridge_protocol import RosbridgeProtocol
-from ros_web_client.services import ServiceHandler
+from ros_web_client.protocol import ClientProtocol
 
+
+#import umsgpack
 
 class ClientSession(ApplicationSession):
     """
@@ -25,14 +20,8 @@ class ClientSession(ApplicationSession):
     
     def __init__(self, config):
         ApplicationSession.__init__(self, config)
-        self.init()
+        self.client_protocol = ClientProtocol(self)
 
-    def init(self):
-        self.ros_protocol = RosbridgeProtocol(0)
-        self.ros_protocol.outgoing = self.outgoing   
-        self.service_handler = ServiceHandler(self.ros_protocol)
-
-        self.topic_occupied = {}
 
 #    def onConnect(self):          
 #        self.join(self.config.realm)
@@ -45,28 +34,12 @@ class ClientSession(ApplicationSession):
 
     @inlineCallbacks
     def on_command(self, command):
-        command_dict = json.loads(command)
-        if command_dict.get("op")=="call_service":
-            result = yield self.service_handler.execute(command)
-            returnValue(result)
-        else:
-            self.ros_protocol.incoming(command)
-            returnValue(None)
-    # the rosbridge Outgoing
-    def outgoing(self, message):
-        message_dict = json.loads(message)
+        result = yield self.client_protocol.incomingRPC(command)
+        returnValue(result)
 
-        if message_dict.get("op")=="service_response":         
-            self.service_handler.callback(message)
-        elif message_dict.get("op")=="publish" and self.topic_occupied.get(message_dict["topic"],False)==False:
-            reactor.callFromThread(self.publish_msg, message)
-
-
-    def publish_msg(self,message):
-        message_dict = json.loads(message)
-        self.topic_occupied[message_dict["topic"]]=True
+    def publish_data(self,message):
         self.publish(server_params["data_domain"], message)
-        self.topic_occupied[message_dict["topic"]]=False
+    
 
 
 

@@ -6,10 +6,9 @@ import json
 
 from twisted.internet.defer import inlineCallbacks, returnValue
 from autobahn.twisted.wamp import ApplicationSession, ApplicationRunner
-
-from rosbridge_library.rosbridge_protocol import RosbridgeProtocol
-from ros_web_client.initialization import ConfigHandler
 import txaio
+
+from ros_web_client.protocol import ServerProtocol
 
 
 class ClientSession(ApplicationSession):
@@ -18,33 +17,23 @@ class ClientSession(ApplicationSession):
 
     def __init__(self, config):
         ApplicationSession.__init__(self, config)
-        self.init()
-
-    def init(self):
-        self.ros_protocol = RosbridgeProtocol(0)
-        self.ros_protocol.outgoing = self.outgoing
+        self.server_protocol = ServerProtocol(self)
 
     @inlineCallbacks
     def onJoin(self, details):
         rospy.loginfo("session attached")
-
         yield self.subscribe(self.on_data, server_params["data_domain"])
+        self.server_protocol.initialize_config(server_params["init_config"])
 
-        #Initialize Config
-        config_handler = ConfigHandler(server_params["init_config"],self.ros_protocol)
-        commands_list = config_handler.return_commands()
-        for command in commands_list:
-            result = yield self.call(client_params["service_domain"],command.message)
-            command.callback(command,result)
+
+    @inlineCallbacks
+    def call_client(self,message):
+        result = yield self.call(client_params["service_domain"], message)
+        returnValue(result)
 
     def on_data(self,message):
-        #replace JSON Null values in float32 types with infinity datatype (changed according to the error for LaserScan values)
-        message = message.replace("null", "Infinity")
-        self.ros_protocol.incoming(message)
+        self.server_protocol.incoming_data(message)
 
-
-    def outgoing(self, message):
-        print("ROSBridge Outgoing {}".format(message))
 
 
 if __name__ == "__main__":

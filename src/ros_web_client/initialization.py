@@ -4,33 +4,44 @@ import rosparam
 from ros_web_client.message_wrapper import Topic, Param
 
 
+class CommandHandler(object):
+
+    def callback_topic(self,command,result):
+        if result is None:
+            command.protocol.incoming(command.wrapper.advertise_command())
+
+    def callback_param(self,command,result):
+        if result is not None:
+            result=json.loads(result)
+            param_value = result["values"]["value"]
+            rosparam.set_param(command.wrapper.name,param_value)
+
 class ConfigHandler(object):
+
+
 
     def __init__(self, config,protocol):
         self.protocol = protocol
         self.parser = ConfigParser(config)
+        self.command_handler = CommandHandler()
         self.commands_list = []
 
     def handle_topics(self):
 
-        def callback(command,result):
-            if result is None:
-                command.protocol.incoming(command.wrapper.advertise_command())
-
         for topic in self.parser.topics_list:
-            command = Command(topic.subscribe_command(),callback,wrapper=topic,protocol=self.protocol)
+            command = Command(topic.subscribe_command(),
+                        self.command_handler.callback_topic,
+                        wrapper=topic,protocol=self.protocol)
+
             self.commands_list.append(command)
     
     def handle_params(self):
-
-        def callback(command,result):
-            if result is not None:
-                result=json.loads(result)
-                param_value = result["values"]["value"]
-                rosparam.set_param(command.wrapper.name,param_value)
         
         for param in self.parser.params_list:
-            command = Command(param.get_command(),callback,wrapper=param,protocol=self.protocol)
+            command = Command(param.get_command(),
+                        self.command_handler.callback_param,
+                        wrapper=param,protocol=self.protocol)
+            
             self.commands_list.append(command)
     
     def return_commands(self):
@@ -86,39 +97,6 @@ class Command(object):
         self.wrapper = wrapper
         self.protocol = protocol
 
-
-
-class ServiceHandler(object):
-    """ Handle Service Requests from RPC
-        catch the request and return a deffered,
-        the deffered will callback when request is completed
-
-        Args:
-        protocol (:obj: ROSBridgeProtocol) instance of Rosbridge Protocol
-    """
-
-    def __init__(self,protocol):
-        self.protocol = protocol
-        self.service_deffereds={}
-   
-    
-    def execute(self, command):
-        dict_command=json.loads(command)
-        d=defer.Deferred()
-        d.addCallback(self._return_result)
-        self.service_deffereds[dict_command["id"]]=d
-        self.protocol.incoming(command)
-        return d
-
-    def callback(self,message):
-        dict_message=json.loads(message)
-        d=self.service_deffereds.get(dict_message["id"])
-        d.callback(message)
-        del self.service_deffereds[dict_message["id"]]
-
-    def _return_result(self,message):
-        return message
-        
 
 
 
