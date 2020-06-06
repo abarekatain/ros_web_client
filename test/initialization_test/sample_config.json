@@ -1,0 +1,17 @@
+{
+  "topics": [
+    {"name": "/test"
+    ,"message_type": "std_msgs/String"
+    ,"latch": true
+    ,"compression": "none"
+    ,"throttle_rate": 88
+    ,"queue_size": 88
+    ,"queue_length": 88},
+    
+    {"name": "/camera/rgb/image_raw"
+      ,"message_type": "sensor_msgs/Image"
+      ,"latch": true
+      ,"compression": "png"}
+  ],
+  "parameters": ["test_param", "dadayeh_param"]
+}

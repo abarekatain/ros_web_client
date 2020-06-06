@@ -18,6 +18,7 @@
     </node>
 
     <node name="serverside" pkg="ros_web_client" type="serverside.py" output="screen">
+        <!--<remap from="/dadayeh/compressedDepth" to="/dd/dadayeh/compressedDepth"/>-->
         <remap from="/clock" to="/dd/clock"/>
         <remap from="/scan" to="/dd/scan"/>
         <remap from="/tf" to="/dd/tf"/>
