@@ -3,10 +3,10 @@
 
     {"name": "/tf"
       ,"message_type": "tf2_msgs/TFMessage"
-      ,"compression": "png"},
+      ,"serialization": "msgpack"},
     {"name": "/scan"
       ,"message_type": "sensor_msgs/LaserScan"
-      ,"compression": "png"}
+      ,"serialization": "msgpack"}
 
     
   ],

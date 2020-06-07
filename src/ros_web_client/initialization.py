@@ -9,7 +9,7 @@ class CommandHandler(object):
     def callback_topic(self,command,result):
         if result is None:
             command.protocol.initialize_topic(wrapper=command.wrapper)
-            #command.protocol.incoming(command.wrapper.advertise_command())
+            command.protocol.incoming(command.wrapper.advertise_command())
 
     def callback_param(self,command,result):
         if result is not None:

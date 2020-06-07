@@ -10,7 +10,8 @@ except ImportError:
     from UserDict import UserDict
 
 class Wrapper(object):
-    SUPPORTED_COMPRESSION_TYPES = ('png', 'none', 'msgpack')
+    SUPPORTED_COMPRESSION_TYPES = ('png', 'none')
+    SUPPORTED_SERIALIZATION_TYPES = ('msgpack', 'json')
 
 class Topic(Wrapper):
     """message wrapper for topics.
@@ -27,11 +28,12 @@ class Topic(Wrapper):
     """
     
 
-    def __init__(self, name, message_type, compression=None, latch=True, throttle_rate=0,
+    def __init__(self, name, message_type, compression=None, serialization=None, latch=True, throttle_rate=0,
                  queue_size=100, queue_length=0, parameters= {}):       
         self.name = name
         self.message_type = message_type
-        self.compression = parameters.get("compression", compression) 
+        self.compression = parameters.get("compression", compression)
+        self.serialization = parameters.get("serialization", serialization) 
         self.latch = parameters.get("latch", latch) 
         self.throttle_rate = parameters.get("throttle_rate", throttle_rate) 
         self.queue_size = parameters.get("queue_size", queue_size)  
@@ -42,10 +44,17 @@ class Topic(Wrapper):
 
         if self.compression is None:
             self.compression = 'none'
+        
+        if self.serialization is None:
+            self.serialization = 'json'
 
         if self.compression not in self.SUPPORTED_COMPRESSION_TYPES:
             raise ValueError(
                 'Unsupported compression type. Must be one of: ' + str(self.SUPPORTED_COMPRESSION_TYPES))
+        
+        if self.serialization not in self.SUPPORTED_SERIALIZATION_TYPES:
+            raise ValueError(
+                'Unsupported serialization type. Must be one of: ' + str(self.SUPPORTED_SERIALIZATION_TYPES))
 
 
     def subscribe_command(self):
@@ -59,6 +68,7 @@ class Topic(Wrapper):
             'type': self.message_type,
             'topic': self.name,
             '_compression': self.compression,
+            '_serialization': self.serialization,
             'throttle_rate': self.throttle_rate,
             'queue_length': self.queue_length
         }

@@ -35,17 +35,19 @@ class ClientProtocol(Protocol):
             returnValue(None)
 
     # the rosbridge outgoing
-    def outgoing(self, message):
-        message_dict = json.loads(message)
-        #msgpacked = umsgpack.packb(message_dict)
+    def outgoing(self,message,isBinary=False,identifier=None):
+        if isBinary:
+            reactor.callFromThread(self.publish_msg, message, identifier)
+        else:
+            message_dict = json.loads(message)
 
-        if message_dict.get("op")=="service_response":       
-            self.service_handler.callback(message)
-        
-        elif message_dict.get("op")=="publish":   
-            thread_identifier = message_dict["topic"]
-            if not self.topic_occupied.get(thread_identifier,False):   
-                reactor.callFromThread(self.publish_msg, message, thread_identifier)
+            if message_dict.get("op")=="service_response":       
+                self.service_handler.callback(message)
+            
+            elif message_dict.get("op")=="publish":   
+                thread_identifier = message_dict["topic"]
+                if not self.topic_occupied.get(thread_identifier,False):   
+                    reactor.callFromThread(self.publish_msg, message, thread_identifier)
 
     def publish_msg(self,message,thread_identifier):
         self.topic_occupied[thread_identifier]=True
