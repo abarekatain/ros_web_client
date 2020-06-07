@@ -33,6 +33,9 @@ class ClientSession(ApplicationSession):
 
     def on_data(self,message):
         self.server_protocol.incoming_data(message)
+    
+    def publish_data(self,message):
+        self.publish(client_params["data_domain"], message)
 
 
 

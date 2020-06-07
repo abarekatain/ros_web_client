@@ -12,37 +12,44 @@ class ros_protocol():
     def __init__(self,id):
         self._protocol = RosbridgeProtocol(id) 
         self._protocol.outgoing = self.rosbridge_outgoing
-        self.topics_compression_state = {}
+        self.incoming_topics_compression_state = {}
+        self.outgoing_topics_compression_state = {}
         self.topics_serialization_state = {}
 
-    def initialize_topic(self,wrapper=None,message=None):
+    def initialize_topic(self,wrapper=None,message=None,isIncoming=None):
         if wrapper is not None:
             topic = wrapper.name
             compression = wrapper.compression
             serialization = wrapper.serialization          
         elif message is not None:
             topic = message["topic"]
-            compression = message.get("_compression",'none')  
+            compression = message.get("_compression","none")  
             serialization = message.get("_serialization","json")          
 
-        self.update_compression(topic,compression)
+        self.update_compression(topic,compression,isIncoming)
         self.update_serialization(topic,serialization)
         
-    def update_compression(self,topic,value):
-        self.topics_compression_state[topic] = value
+    def update_compression(self,topic,value,isIncoming):
+        if isIncoming:
+            if topic not in self.incoming_topics_compression_state:
+                self.incoming_topics_compression_state[topic] = value
+        else:
+            if topic not in self.outgoing_topics_compression_state:
+                self.outgoing_topics_compression_state[topic] = value
     
     def update_serialization(self,topic,value):
-        self.topics_serialization_state[topic] = value
+        if topic not in self.topics_serialization_state:
+            self.topics_serialization_state[topic] = value
 
     def decompress(self,topic,data):
-        if self.topics_compression_state[topic] == "png":
+        if self.incoming_topics_compression_state.get(topic) == "png":
             data = pngcompression.decode(data)
             return json.loads(data)
         else:
             return data
 
     def compress(self,topic,data):
-        if self.topics_compression_state[topic] == "png":
+        if self.outgoing_topics_compression_state.get(topic) == "png":
             data = json.dumps(data)
             return pngcompression.encode(data)
         else: 
@@ -67,9 +74,7 @@ class ros_protocol():
             message = self.deserialize(message)
 
 
-        if message.get("op") == "subscribe":
-            self.initialize_topic(message=message)
-        elif message.get("op") == "publish":
+        if message.get("op") == "publish":
             message["msg"] = self.decompress(message["topic"],message.get("msg"))
 
 

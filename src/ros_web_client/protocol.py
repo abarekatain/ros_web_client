@@ -14,25 +14,10 @@ class Protocol():
         self.session = session
         self.ros_protocol = RosbridgeProtocol(0)
         self.ros_protocol.outgoing = self.outgoing
-
-
-class ClientProtocol(Protocol):
-
-    def __init__(self,session):
-        Protocol.__init__(self, session)
-        self.service_handler = ServiceHandler(self.ros_protocol)
         self.topic_occupied = {}
-   
 
-    @inlineCallbacks
-    def incomingRPC(self,command):
-        command_dict = json.loads(command)
-        if command_dict.get("op")=="call_service":
-            result = yield self.service_handler.execute(command)
-            returnValue(result)
-        else:
-            self.ros_protocol.incoming(command_dict)
-            returnValue(None)
+    def incoming_data(self,message):
+        self.ros_protocol.incoming(message)
 
     # the rosbridge outgoing
     def outgoing(self,message,isBinary=False,identifier=None):
@@ -48,18 +33,36 @@ class ClientProtocol(Protocol):
                 thread_identifier = message_dict["topic"]
                 if not self.topic_occupied.get(thread_identifier,False):   
                     reactor.callFromThread(self.publish_msg, message, thread_identifier)
-
+    
     def publish_msg(self,message,thread_identifier):
         self.topic_occupied[thread_identifier]=True
         self.session.publish_data(message)
         self.topic_occupied[thread_identifier]=False
 
 
-
-class ServerProtocol(Protocol):
+class ClientProtocol(Protocol):
 
     def __init__(self,session):
         Protocol.__init__(self, session)
+        self.service_handler = ServiceHandler(self.ros_protocol)
+
+    @inlineCallbacks
+    def incomingRPC(self,command):
+        command_dict = json.loads(command)
+        op = command_dict.get("op")
+        if op=="call_service":
+            result = yield self.service_handler.execute(command)
+            returnValue(result)
+        else:
+            if op=="subscribe":
+                self.ros_protocol.initialize_topic(message=command_dict,isIncoming=False)
+            elif op=="advertise":
+                self.ros_protocol.initialize_topic(message=command_dict,isIncoming=True)
+
+            self.ros_protocol.incoming(command_dict)
+            returnValue(None)
+
+class ServerProtocol(Protocol):
 
     @inlineCallbacks
     def initialize_config(self,configfile):
@@ -68,9 +71,3 @@ class ServerProtocol(Protocol):
         for command in commands_list:
             result = yield self.session.call_client(command.message)
             command.callback(command,result)
-
-    def incoming_data(self,message):
-        self.ros_protocol.incoming(message)
-
-    def outgoing(self, message):
-        print("ROSBridge Outgoing {}".format(message))    

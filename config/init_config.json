@@ -1,16 +1,26 @@
 {
-  "topics": [
+  "client": {
+    "topics": [
 
-    {"name": "/tf"
-      ,"message_type": "tf2_msgs/TFMessage"
-      ,"serialization": "msgpack"},
-    {"name": "/scan"
-      ,"message_type": "sensor_msgs/LaserScan"
-      ,"serialization": "msgpack"}
+      {"name": "/dadayeh_client"
+        ,"message_type": "std_msgs/String"
+        ,"serialization": "msgpack"}
+        
+    ],
+    "parameters": [
+    ]
+  },
 
-    
-  ],
-  "parameters": [
-  ]
+  "server": {
+    "topics": [
+
+      {"name": "/dadayeh_server"
+        ,"message_type": "std_msgs/String"
+        ,"serialization": "msgpack"}
+  
+      
+    ]
+  }
+  
 
 }

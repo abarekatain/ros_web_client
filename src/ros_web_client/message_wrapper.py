@@ -93,6 +93,8 @@ class Topic(Wrapper):
             'id': self.op_id,
             'type': self.message_type,
             'topic': self.name,
+            '_compression': self.compression,
+            '_serialization': self.serialization,
             'latch': self.latch,
             'queue_size': self.queue_size
         }
