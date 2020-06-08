@@ -29,7 +29,7 @@ class Topic(Wrapper):
     
 
     def __init__(self, name, message_type, compression=None, serialization=None, latch=True, throttle_rate=0,
-                 queue_size=100, queue_length=0, parameters= {}):       
+                 queue_size=100, queue_length=0,remap=None, parameters= {}):       
         self.name = name
         self.message_type = message_type
         self.compression = parameters.get("compression", compression)
@@ -38,6 +38,7 @@ class Topic(Wrapper):
         self.throttle_rate = parameters.get("throttle_rate", throttle_rate) 
         self.queue_size = parameters.get("queue_size", queue_size)  
         self.queue_length = parameters.get("queue_length", queue_length)
+        self.remap = parameters.get("remap", remap)
 
         self.op_id = uuid.uuid4().hex
 
@@ -47,6 +48,9 @@ class Topic(Wrapper):
         
         if self.serialization is None:
             self.serialization = 'json'
+
+        if self.remap is None:
+            self.remap = self.name
 
         if self.compression not in self.SUPPORTED_COMPRESSION_TYPES:
             raise ValueError(
@@ -69,6 +73,7 @@ class Topic(Wrapper):
             'topic': self.name,
             '_compression': self.compression,
             '_serialization': self.serialization,
+            '_remap': self.remap,
             'throttle_rate': self.throttle_rate,
             'queue_length': self.queue_length
         }
@@ -95,6 +100,7 @@ class Topic(Wrapper):
             'topic': self.name,
             '_compression': self.compression,
             '_serialization': self.serialization,
+            '_remap': self.remap,
             'latch': self.latch,
             'queue_size': self.queue_size
         }

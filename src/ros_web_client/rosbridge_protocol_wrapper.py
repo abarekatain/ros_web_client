@@ -15,20 +15,32 @@ class ros_protocol():
         self.incoming_topics_compression_state = {}
         self.outgoing_topics_compression_state = {}
         self.topics_serialization_state = {}
+        self.topics_remap_state = {}
 
     def initialize_topic(self,wrapper=None,message=None,isIncoming=None):
         if wrapper is not None:
             topic = wrapper.name
             compression = wrapper.compression
-            serialization = wrapper.serialization          
+            serialization = wrapper.serialization
+            remap = wrapper.remap       
         elif message is not None:
             topic = message["topic"]
             compression = message.get("_compression","none")  
-            serialization = message.get("_serialization","json")          
-
+            serialization = message.get("_serialization","json")
+            remap = message.get("_remap")
+        
+        if isIncoming:
+            self.setup_topic_remaps(topic,remap)
+        
         self.update_compression(topic,compression,isIncoming)
         self.update_serialization(topic,serialization)
-        
+    
+    def setup_topic_remaps(self,name,remap):
+        self.topics_remap_state[name] = remap
+
+    def remap_topic(self,topic):
+        return self.topics_remap_state.get(topic)
+
     def update_compression(self,topic,value,isIncoming):
         if isIncoming:
             if topic not in self.incoming_topics_compression_state:
@@ -76,6 +88,10 @@ class ros_protocol():
 
         if message.get("op") == "publish":
             message["msg"] = self.decompress(message["topic"],message.get("msg"))
+            message["topic"] = self.remap_topic(message["topic"])
+        
+        elif message.get("op") == "advertise":
+            message["topic"] = self.remap_topic(message["topic"])
 
 
         message = json.dumps(message)

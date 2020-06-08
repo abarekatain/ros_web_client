@@ -4,7 +4,8 @@
 
       {"name": "/dadayeh_client"
         ,"message_type": "std_msgs/String"
-        ,"serialization": "msgpack"}
+        ,"serialization": "msgpack"
+        ,"remap": "/onserver/dadayeh_client"}
         
     ],
     "parameters": [
@@ -16,7 +17,8 @@
 
       {"name": "/dadayeh_server"
         ,"message_type": "std_msgs/String"
-        ,"serialization": "msgpack"}
+        ,"serialization": "msgpack"
+        ,"remap": "/onclient/dadayeh_server"}
   
       
     ]
