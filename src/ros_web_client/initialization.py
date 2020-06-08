@@ -24,6 +24,7 @@ class CommandHandler(object):
     
     def callback_service_client(self,command,result):
         if result is None:
+            command.protocol.initialize_service(wrapper=command.wrapper)
             command.protocol.incoming(command.wrapper.advertise_command())
     
     def callback_service_server(self,command,result):

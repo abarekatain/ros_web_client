@@ -16,6 +16,27 @@ class ros_protocol():
         self.outgoing_topics_compression_state = {}
         self.topics_serialization_state = {}
         self.topics_remap_state = {}
+        self.services_remap_state = {}
+        self.inv_services_remap_state = {}
+
+    def initialize_service(self,wrapper=None,message=None):
+        if wrapper is not None:
+            name = wrapper.name
+            remap = wrapper.remap
+        elif message is not None:
+            name = message.get("service")
+            remap = message.get("_remap")
+        self.setup_service_remaps(name,remap)
+    
+    def setup_service_remaps(self,name,remap):
+        self.services_remap_state[name] = remap
+        self.inv_services_remap_state = {v: k for k, v in self.services_remap_state.items()}
+
+    def remap_service(self,service):
+        return self.services_remap_state.get(service)
+
+    def inv_remap_service(self,service):
+        return self.inv_services_remap_state.get(service)
 
     def initialize_topic(self,wrapper=None,message=None,isIncoming=None):
         if wrapper is not None:
@@ -85,13 +106,16 @@ class ros_protocol():
         elif isinstance(message, bytes):
             message = self.deserialize(message)
 
-
-        if message.get("op") == "publish":
+        op=message.get("op")
+        if op == "publish":
             message["msg"] = self.decompress(message["topic"],message.get("msg"))
             message["topic"] = self.remap_topic(message["topic"])
         
-        elif message.get("op") == "advertise":
+        elif op == "advertise":
             message["topic"] = self.remap_topic(message["topic"])
+
+        elif op == "advertise_service" or op == "service_response":
+            message["service"] = self.remap_service(message["service"])
 
 
         message = json.dumps(message)
@@ -104,10 +128,14 @@ class ros_protocol():
     def rosbridge_outgoing(self,message):
 
         message = json.loads(message)
-        if message.get("op") == "publish":
+        op=message.get("op")
+        if op == "publish":
             topic_name = message["topic"]
             message["msg"] = self.compress(topic_name,message.get("msg"))
             message = self.serialize(topic_name,message)
+        elif op == "call_service":
+            message["service"] = self.inv_remap_service(message["service"])
+
         
         if isinstance(message, bytes):
             self.outgoing(message,isBinary=True,identifier=topic_name)

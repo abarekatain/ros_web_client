@@ -69,7 +69,9 @@ class ClientProtocol(Protocol):
                 self.ros_protocol.initialize_topic(message=command_dict,isIncoming=False)
             elif op=="advertise":
                 self.ros_protocol.initialize_topic(message=command_dict,isIncoming=True)
-
+            elif op=="advertise_service":
+                self.ros_protocol.initialize_service(message=command_dict)
+                
             self.ros_protocol.incoming(command_dict)
             returnValue(None)
 

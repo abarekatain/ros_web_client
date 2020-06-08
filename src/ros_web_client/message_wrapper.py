@@ -132,16 +132,20 @@ class Service(Wrapper):
         name (:obj:`str`): Service name, e.g. ``/add_two_ints``.
     """
 
-    def __init__(self, name, type=None, op_id=None, compression=None, parameters= {}):
+    def __init__(self, name, type=None,remap=None, op_id=None, compression=None, parameters= {}):
         self.name = name
         self.type = type
         self.compression = parameters.get("compression", compression)
+        self.remap = parameters.get("remap", remap)
         self.op_id = op_id
         
         if self.compression is None:
             self.compression = 'none'
         if self.op_id is None:
             self.op_id = uuid.uuid4().hex
+
+        if self.remap is None:
+            self.remap = self.name
 
         if self.compression not in self.SUPPORTED_COMPRESSION_TYPES:
             raise ValueError(
@@ -166,7 +170,8 @@ class Service(Wrapper):
         command = {
             'op': 'advertise_service',
             "type": self.type,
-            'service': self.name
+            'service': self.name,
+            "_remap": self.remap
         }
 
         return json.dumps(command)

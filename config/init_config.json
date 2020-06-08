@@ -4,7 +4,11 @@
         
     ],
     "services": [
+      {"name": "/rosapi/get_param"
+        ,"type": "rosapi/GetParam"
+        ,"remap": "/dadayeh_service"}
 
+        
     ],
     "parameters": [
 
@@ -17,8 +21,7 @@
     ],
     "services": [
 
-      {"name": "/rosapi/get_param"
-        ,"type": "rosapi/GetParam"}
+
         
     ]
   }
