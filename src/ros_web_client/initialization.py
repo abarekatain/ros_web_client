@@ -25,6 +25,11 @@ class CommandHandler(object):
     def callback_service_client(self,command,result):
         if result is None:
             command.protocol.incoming(command.wrapper.advertise_command())
+    
+    def callback_service_server(self,command,result):
+        pass
+        #if result is None:
+            #command.protocol.incoming(command.wrapper.request_command())
 
 class ConfigHandler(object):
 
@@ -54,6 +59,13 @@ class ConfigHandler(object):
         for service in self.parser.client_services_list:
             command = Command(service.request_command(),
                         self.command_handler.callback_service_client,
+                        wrapper=service,protocol=self.protocol)
+            self.commands_list.append(command)
+
+        #Server
+        for service in self.parser.server_services_list:
+            command = Command(service.advertise_command(),
+                        self.command_handler.callback_service_server,
                         wrapper=service,protocol=self.protocol)
             self.commands_list.append(command)
     
@@ -113,7 +125,12 @@ class ConfigParser(object):
         for item in self.client_config.get("services"):
             service = Service(item["name"],type=item["type"],parameters=item)
             self.client_services_list.append(service)        
-    
+
+        #Server
+        for item in self.server_config.get("services"):
+            service = Service(item["name"],type=item["type"],parameters=item)
+            self.server_services_list.append(service) 
+
     def parse_params(self):
         """ parse params into param wrapper class
         """              

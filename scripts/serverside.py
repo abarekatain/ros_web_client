@@ -23,16 +23,23 @@ class ClientSession(ApplicationSession):
     def onJoin(self, details):
         rospy.loginfo("session attached")
         yield self.subscribe(self.on_data, server_params["data_domain"])
+        yield self.register(self.on_command, server_params["service_domain"])
+
         self.server_protocol.initialize_config(server_params["init_config"])
 
 
     @inlineCallbacks
-    def call_client(self,message):
+    def call_RP(self,message):
         result = yield self.call(client_params["service_domain"], message)
         returnValue(result)
 
     def on_data(self,message):
         self.server_protocol.incoming_data(message)
+
+    @inlineCallbacks
+    def on_command(self, command):
+        result = yield self.server_protocol.incomingRPC(command)
+        returnValue(result)
     
     def publish_data(self,message):
         self.publish(client_params["data_domain"], message)

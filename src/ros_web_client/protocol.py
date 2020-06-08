@@ -15,6 +15,7 @@ class Protocol():
         self.ros_protocol = RosbridgeProtocol(0)
         self.ros_protocol.outgoing = self.outgoing
         self.topic_occupied = {}
+        self.service_handler = ServiceHandler(self.ros_protocol)
 
     def incoming_data(self,message):
         self.ros_protocol.incoming(message)
@@ -40,7 +41,7 @@ class Protocol():
                     
     @inlineCallbacks
     def call_service(self,message):
-        result = yield self.session.call_client(message)
+        result = yield self.session.call_RP(message)
         self.ros_protocol.incoming(result)
 
     def publish_msg(self,message,thread_identifier):
@@ -53,7 +54,6 @@ class ClientProtocol(Protocol):
 
     def __init__(self,session):
         Protocol.__init__(self, session)
-        self.service_handler = ServiceHandler(self.ros_protocol)
 
     @inlineCallbacks
     def incomingRPC(self,command):
@@ -80,5 +80,13 @@ class ServerProtocol(Protocol):
         config_handler = ConfigHandler(configfile,self.ros_protocol)
         commands_list = config_handler.return_commands()
         for command in commands_list:
-            result = yield self.session.call_client(command.message)
+            result = yield self.session.call_RP(command.message)
             command.callback(command,result)
+
+    @inlineCallbacks
+    def incomingRPC(self,command):
+        command_dict = json.loads(command)
+        op = command_dict.get("op")
+        if op=="call_service":
+            result = yield self.service_handler.execute(command)
+            returnValue(result)

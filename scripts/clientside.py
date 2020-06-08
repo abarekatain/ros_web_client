@@ -43,6 +43,11 @@ class ClientSession(ApplicationSession):
 
     def publish_data(self,message):
         self.publish(server_params["data_domain"], message)
+
+    @inlineCallbacks
+    def call_RP(self,message):
+        result = yield self.call(server_params["service_domain"], message)
+        returnValue(result)
     
 
 
