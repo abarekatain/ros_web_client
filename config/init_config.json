@@ -1,26 +1,22 @@
 {
   "client": {
     "topics": [
+        
+    ],
+    "services": [
 
-      {"name": "/dadayeh_client"
-        ,"message_type": "std_msgs/String"
-        ,"serialization": "msgpack"
-        ,"remap": "/onserver/dadayeh_client"}
+      {"name": "/rosapi/get_param"
+        ,"type": "rosapi/GetParam"}
         
     ],
     "parameters": [
+
     ]
   },
 
   "server": {
     "topics": [
 
-      {"name": "/dadayeh_server"
-        ,"message_type": "std_msgs/String"
-        ,"serialization": "msgpack"
-        ,"remap": "/onclient/dadayeh_server"}
-  
-      
     ]
   }
   

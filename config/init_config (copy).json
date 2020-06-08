@@ -64,3 +64,40 @@
   ],
   "parameters": ["/robot_description"]
 }
+
+
+{
+  "client": {
+    "topics": [
+
+      {"name": "/dadayeh_client"
+        ,"message_type": "std_msgs/String"
+        ,"serialization": "msgpack"
+        ,"remap": "/onserver/dadayeh_client"}
+        
+    ],
+    "services": [
+
+      {"name": "/test_service"
+        ,"type": "std_srvs/SetBool"}
+        
+    ],
+    "parameters": [
+      "/dadayeh"
+    ]
+  },
+
+  "server": {
+    "topics": [
+
+      {"name": "/dadayeh_server"
+        ,"message_type": "std_msgs/String"
+        ,"serialization": "msgpack"
+        ,"remap": "/onclient/dadayeh_server"}
+  
+      
+    ]
+  }
+  
+
+}

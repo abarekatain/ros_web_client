@@ -25,15 +25,24 @@ class Protocol():
             reactor.callFromThread(self.publish_msg, message, identifier)
         else:
             message_dict = json.loads(message)
+            op = message_dict.get("op")
 
-            if message_dict.get("op")=="service_response":       
+            if op=="service_response":       
                 self.service_handler.callback(message)
+
+            elif op=="call_service":
+                self.call_service(message)
             
-            elif message_dict.get("op")=="publish":   
+            elif op=="publish":   
                 thread_identifier = message_dict["topic"]
                 if not self.topic_occupied.get(thread_identifier,False):   
                     reactor.callFromThread(self.publish_msg, message, thread_identifier)
-    
+                    
+    @inlineCallbacks
+    def call_service(self,message):
+        result = yield self.session.call_client(message)
+        self.ros_protocol.incoming(result)
+
     def publish_msg(self,message,thread_identifier):
         self.topic_occupied[thread_identifier]=True
         self.session.publish_data(message)
@@ -53,6 +62,8 @@ class ClientProtocol(Protocol):
         if op=="call_service":
             result = yield self.service_handler.execute(command)
             returnValue(result)
+        elif op=="request_service":
+            returnValue(None)
         else:
             if op=="subscribe":
                 self.ros_protocol.initialize_topic(message=command_dict,isIncoming=False)

@@ -1,7 +1,7 @@
 import json
 import rosparam
 
-from ros_web_client.message_wrapper import Topic, Param
+from ros_web_client.message_wrapper import Topic, Service, Param
 
 
 class CommandHandler(object):
@@ -21,6 +21,10 @@ class CommandHandler(object):
             result=json.loads(result)
             param_value = result["values"]["value"]
             rosparam.set_param(command.wrapper.name,param_value)
+    
+    def callback_service_client(self,command,result):
+        if result is None:
+            command.protocol.incoming(command.wrapper.advertise_command())
 
 class ConfigHandler(object):
 
@@ -44,6 +48,14 @@ class ConfigHandler(object):
                         self.command_handler.callback_topic_server,
                         wrapper=topic,protocol=self.protocol)
             self.commands_list.append(command)
+
+    def handle_services(self):
+        #Client
+        for service in self.parser.client_services_list:
+            command = Command(service.request_command(),
+                        self.command_handler.callback_service_client,
+                        wrapper=service,protocol=self.protocol)
+            self.commands_list.append(command)
     
     def handle_params(self):
         #Client
@@ -54,8 +66,9 @@ class ConfigHandler(object):
             self.commands_list.append(command)
     
     def return_commands(self):
-        self.handle_topics()
         self.handle_params()
+        self.handle_services()
+        self.handle_topics()
         return self.commands_list
 
 class ConfigParser(object):
@@ -92,6 +105,14 @@ class ConfigParser(object):
         for item in self.server_config.get("topics"):
             topic = Topic(item["name"],item["message_type"],parameters=item)
             self.server_topics_list.append(topic)
+
+    def parse_services(self):
+        """ parse services into Service wrapper class
+        """
+        #Client
+        for item in self.client_config.get("services"):
+            service = Service(item["name"],type=item["type"],parameters=item)
+            self.client_services_list.append(service)        
     
     def parse_params(self):
         """ parse params into param wrapper class
@@ -103,6 +124,7 @@ class ConfigParser(object):
     def parse(self):
         self.parse_topics()
         self.parse_params()
+        self.parse_services()
 
 
 class Command(object):

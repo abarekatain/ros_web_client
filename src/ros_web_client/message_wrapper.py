@@ -132,9 +132,10 @@ class Service(Wrapper):
         name (:obj:`str`): Service name, e.g. ``/add_two_ints``.
     """
 
-    def __init__(self, name, op_id=None, compression=None):
+    def __init__(self, name, type=None, op_id=None, compression=None, parameters= {}):
         self.name = name
-        self.compression = compression
+        self.type = type
+        self.compression = parameters.get("compression", compression)
         self.op_id = op_id
         
         if self.compression is None:
@@ -150,7 +151,6 @@ class Service(Wrapper):
 
     def call_command(self, request):
 
-
         command = {
             'op': 'call_service',
             'id': self.op_id,
@@ -161,7 +161,25 @@ class Service(Wrapper):
         return json.dumps(command)
 
 
+    def advertise_command(self):
 
+        command = {
+            'op': 'advertise_service',
+            "type": self.type,
+            'service': self.name
+        }
+
+        return json.dumps(command)
+
+    def request_command(self):
+
+        command = {
+            'op': 'request_service',
+            "type": self.type,
+            'service': self.name
+        }
+
+        return json.dumps(command)
 
 
 
