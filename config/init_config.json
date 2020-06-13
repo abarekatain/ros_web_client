@@ -1,13 +1,14 @@
 {
   "client": {
     "topics": [
+      {"name": "/myimage/compressedDepth"
+        ,"message_type": "sensor_msgs/CompressedImage"},
         
+      {"name": "/camera/rgb/image_raw/compressed"
+        ,"message_type": "sensor_msgs/CompressedImage"
+        }        
     ],
     "services": [
-      {"name": "/rosapi/get_param"
-        ,"type": "rosapi/GetParam"
-        ,"remap": "/dadayeh_service"}
-
         
     ],
     "parameters": [
