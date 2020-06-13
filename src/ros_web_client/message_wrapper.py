@@ -1,30 +1,52 @@
-from __future__ import print_function
+# MIT License
+#
+# Copyright (c) 2020 Alireza Barekatain - Isfahan University of Technology
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 
 import json
 import uuid
 
-# Python 2/3 compatibility import list
-try:
-    from collections import UserDict
-except ImportError:
-    from UserDict import UserDict
 
 class Wrapper(object):
+    """ Base class for all message-wrapper classes
+    """
     SUPPORTED_COMPRESSION_TYPES = ('png', 'none')
     SUPPORTED_SERIALIZATION_TYPES = ('msgpack', 'json')
 
 class Topic(Wrapper):
-    """message wrapper for topics.
+    """ Message Wrapper for Topics.
 
-    Args:
-        name (:obj:`str`): Topic name, e.g. ``/cmd_vel``.
-        message_type (:obj:`str`): Message type, e.g. ``std_msgs/String``.
-        compression (:obj:`str`): Type of compression to use, e.g. `png`. Defaults to `None`.
-        throttle_rate (:obj:`int`): Rate (in ms between messages) at which to throttle the topics.
-        queue_size (:obj:`int`): Queue size created at bridge side for re-publishing webtopics.
-        latch (:obj:`bool`): True to latch the topic when publishing, False otherwise.
-        queue_length (:obj:`int`): Queue length at bridge side used when subscribing.
-        reconnect_on_close (:obj:`bool`): Reconnect the topic (both for publisher and subscribers) if a reconnection is detected.
+        Attributes:
+        name : Topic name, e.g. ``/cmd_vel``.
+        message_type : Message type, e.g. ``std_msgs/String``.
+        compression : Type of compression to use, e.g. `png`. Defaults to `None`.
+        serialization : Type of Serialization to use for transmitting messages
+        throttle_rate : Rate (in ms between messages) at which to throttle the topics.
+        queue_size : Queue size for re-publishing webtopics.
+        latch : True to latch the topic when publishing, False otherwise.
+        queue_length : Queue length used when subscribing.
+        remap : If specified, The topic will be remapped to the name assigned to this argument
+        parameters : Dictionary to pass all the arguments above at once
+                     (Only one method of passing arguments should be used,
+                      the value in `parameters` dict will be used otherwise)
     """
     
 
@@ -81,7 +103,9 @@ class Topic(Wrapper):
         return json.dumps(command)
 
     def unsubscribe_command(self):
-        """Return a json unsubscription command for the topic"""
+        """Return a json unsubscription command for the topic
+        """
+
         command = {
             'op': 'unsubscribe',
             'id': self.op_id,
@@ -91,7 +115,8 @@ class Topic(Wrapper):
         return json.dumps(command)    
 
     def advertise_command(self):
-        """Return a json advertise command for the topic"""
+        """Return a json advertise command for the topic
+        """
 
         command = {
             'op': 'advertise',
@@ -108,7 +133,8 @@ class Topic(Wrapper):
         return json.dumps(command)
 
     def unadvertise_command(self):
-        """Return a json unadvertise command for the topic"""
+        """Return a json unadvertise command for the topic
+        """
         
         command = {
             'op': 'unadvertise',
@@ -120,16 +146,18 @@ class Topic(Wrapper):
 
 
 
-
-
-
-
 class Service(Wrapper):
-    """message wrapper for ROS services.
+    """Message Wrapper for ROS services
 
 
-    Args:
-        name (:obj:`str`): Service name, e.g. ``/add_two_ints``.
+        Attributes:
+        name : Service name, e.g. ``/add_two_ints``.
+        type : Service Type
+        remap : If specified, The service will be remapped to the name assigned to this argument
+        op_id : Unique Id for Service Call. if not specified, a unique ip will be assigned automatically
+        parameters : Dictionary to pass all the arguments above at once
+                     (Only one method of passing arguments should be used,
+                      the value in `parameters` dict will be used otherwise)
     """
 
     def __init__(self, name, type=None,remap=None, op_id=None, compression=None, parameters= {}):
@@ -154,6 +182,11 @@ class Service(Wrapper):
 
 
     def call_command(self, request):
+        """ return a json call-service command
+
+            Args:
+            request: request dictionary
+        """
 
         command = {
             'op': 'call_service',
@@ -166,6 +199,8 @@ class Service(Wrapper):
 
 
     def advertise_command(self):
+        """ return a json advertise-service command
+        """
 
         command = {
             'op': 'advertise_service',
@@ -177,7 +212,8 @@ class Service(Wrapper):
         return json.dumps(command)
 
     def request_command(self):
-
+        """ return a json request-service command
+        """
         command = {
             'op': 'request_service',
             "type": self.type,
@@ -189,11 +225,10 @@ class Service(Wrapper):
 
 
 class Param(object):
-    """A ROS parameter.
+    """ Message Wrapper for ROS Parameters
 
-    Args:
-        ros (:class:`.Ros`): Instance of the ROS connection.
-        name (:obj:`str`): Parameter name, e.g. ``max_vel_x``.
+        Attributes:
+        name : Parameter name, e.g. ``max_vel_x``.
     """
 
     def __init__(self, name):
@@ -201,19 +236,25 @@ class Param(object):
         self.op_id = uuid.uuid4().hex
 
     def get_command(self):
+        """ Return getParam Service Request Command
+        """
         client = Service('/rosapi/get_param',op_id=self.op_id)
         request = {'name': self.name}
         return client.call_command(request)
 
 
     def set_command(self, value):
-
+        """ Return setParam Service Request Command
+        """
+        
         client = Service('/rosapi/set_param',op_id=self.op_id)
         request = {'name': self.name, 'value': json.dumps(value)}
 
         return client.call_command(request)
 
     def delete_command(self):
+        """ Return deleteParam Service Request Command
+        """
         
         client = Service('/rosapi/delete_param',op_id=self.op_id)
         request = {'name': self.name}
