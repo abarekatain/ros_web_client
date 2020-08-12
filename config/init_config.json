@@ -1,14 +1,14 @@
 {
   "client": {
     "topics": [
-      {"name": "/myimage/compressedDepth"
-        ,"message_type": "sensor_msgs/CompressedImage"},
-        
-      {"name": "/camera/rgb/image_raw/compressed"
-        ,"message_type": "sensor_msgs/CompressedImage"
-        }        
+      {"name": "/test"
+        ,"message_type": "std_msgs/String"
+        ,"remap": "/test_back"}      
     ],
     "services": [
+      {"name": "/test"
+        ,"type": "ros_web_client/RTTSrv"
+        ,"remap":"/test_back"}
         
     ],
     "parameters": [
