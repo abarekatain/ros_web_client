@@ -37,7 +37,7 @@ from twisted.internet.defer import inlineCallbacks, returnValue
 from autobahn.twisted.wamp import ApplicationSession, ApplicationRunner
 import txaio
 
-from ros_web_client.protocol import ClientProtocol
+from rosconnect.protocol import ClientProtocol
 
 
 class ClientSession(ApplicationSession):

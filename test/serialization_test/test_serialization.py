@@ -36,7 +36,7 @@ class Test(unittest.TestCase):
 
 
 
-PKG = 'ros_web_client'
+PKG = 'rosconnect'
 NAME = 'test_initialization'
 if __name__ == '__main__':
     rospy.init_node("test_rosbridge", anonymous=False)

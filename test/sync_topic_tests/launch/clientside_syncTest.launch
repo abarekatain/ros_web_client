@@ -18,7 +18,7 @@
         -->
     <node name="republish_client" type="republish" pkg="image_transport" output="screen" args="raw in:=/camera/depth/image_raw compressedDepth out:=/myimage" />
 
-    <node name="clientside" pkg="ros_web_client" type="clientside.py" output="screen"/>
+    <node name="clientside" pkg="rosconnect" type="clientside.py" output="screen"/>
  
     <param name="webclient/robot_id" value="$(arg robot_id)" />
     <param name="webclient/url" value="$(arg url)" />

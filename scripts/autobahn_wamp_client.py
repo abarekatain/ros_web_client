@@ -2,7 +2,7 @@
 
 import rospy
 from std_msgs.msg import String
-from ros_web_client.message_wrapper import Topic
+from rosconnect.message_wrapper import Topic
 
 import sys
 import threading

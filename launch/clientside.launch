@@ -15,7 +15,7 @@
         <param name="params_glob" value="$(arg params_glob)"/>
     </node>
 
-    <node name="clientside" pkg="ros_web_client" type="clientside.py" output="screen"/>
+    <node name="clientside" pkg="rosconnect" type="clientside.py" output="screen"/>
  
     <param name="webclient/robot_id" value="$(arg robot_id)" />
     <param name="webclient/url" value="$(arg url)" />

@@ -4,7 +4,7 @@ import unittest
 import json
 import rospy
 
-from ros_web_client.message_wrapper import Topic
+from rosconnect.message_wrapper import Topic
 
 from rosbridge_library.internal import pngcompression
 
@@ -62,7 +62,7 @@ class TestInitialization(unittest.TestCase):
 
 
 
-PKG = 'ros_web_client'
+PKG = 'rosconnect'
 NAME = 'test_initialization'
 if __name__ == '__main__':
     rospy.init_node("test_rosbridge", anonymous=False)
